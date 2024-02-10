@@ -1,7 +1,7 @@
 
 # Computational Tools for Physics       
 
-![NOF](https://socialify.git.ci/toczekmj/NOF/image?description=1&descriptionEditable=Computational%20Tools%20for%20Physics%20credit%20project&owner=1)
+![CTP-Colliding-Blocks-in-mathematica](https://socialify.git.ci/toczekmj/CTP-Colliding-Blocks-in-mathematica/image?description=1&descriptionEditable=Computational%20Tools%20for%20Physics%20credit%20project&language=1&name=1&owner=1&tab=readme-ov-file%3Flanguage%3D1&theme=Light)
 
 This is a credit project for a Computational Tools for Physics class in the year 2023/2024. Taught under supervision of Mr. [Kacper Topolnicki](https://github.com/kacpertopol).
 
