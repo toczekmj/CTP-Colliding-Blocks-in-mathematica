@@ -9,7 +9,7 @@ This is a credit project for a Computational Tools for Physics class in the year
 ## Authors
 
 - Adam Węglik
-- [Michał Toczek](https://github.com/kacpertopol)
+- [Michał Toczek](https://github.com/toczekmj)
 - [Mariusz Wilk](https://github.com/mario343)
 - [Michał Harasim](https://github.com/michalharasim)
 
