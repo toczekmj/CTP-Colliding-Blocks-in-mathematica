@@ -1,7 +1,7 @@
 
 # Computational Tools for Physics       
 
-![NOF](https://socialify.git.ci/toczekmj/NOF/image?description=1&font=Raleway&forks=1&issues=1&language=1&name=1&owner=1&pattern=Solid&pulls=1&stargazers=1&theme=Auto)
+![NOF](https://socialify.git.ci/toczekmj/NOF/image?description=1&descriptionEditable=Computational%20Tools%20for%20Physics%20credit%20project&owner=1)
 
 This is a credit project for a Computational Tools for Physics class in the year 2023/2024. Taught under supervision of Mr. [Kacper Topolnicki](https://github.com/kacpertopol).
 
