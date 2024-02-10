@@ -1,0 +1,123 @@
+r = 1;
+widht = r 2 Pi;
+dt = 1/60;
+quantity = 2;
+col = 100;
+collisionscan[k_] := (
+   For[i = 1, i <= quantity, i++,
+    If[vel[[k, i]] != 0,
+     For[j = 1, j <= quantity, j++,
+      If[
+        i != j && 
+         Sign[pos[[k, j, Sign[vel[[k, i]]]]] - 
+             pos[[k, i, -Sign[vel[[k, i]]]]]] vel[[k, i]] > 
+          Sign[pos[[k, j, Sign[vel[[k, i]]]]] - 
+             pos[[k, i, -Sign[vel[[k, i]]]]]] vel[[k, j]],
+        ct = 
+         Abs[pos[[k, i, -Sign[vel[[k, i]]]]] - 
+            pos[[k, j, Sign[vel[[k, i]]]]]]/
+          Abs[vel[[k, i]] - vel[[k, j]]];
+        
+        t[[k]] = Join[t[[k]], {{ct, i, j}}]];
+      ];
+     If[vel[[k, i]] > 0,
+      ct = Abs[pos[[k, i]] - widht]/Abs[vel[[k, i]]];
+      t[[k]] = Join[t[[k]], {{Sort[ct][[1]], i, quantity + 1}}]
+      ,
+      ct = Abs[pos[[k, i]] - 0]/Abs[vel[[k, i]]];
+      t[[k]] = Join[t[[k]], {{Sort[ct][[1]], i, 0}}];
+      
+      ]]];
+   (*Print[t[[k]]];*)
+   t[[k]] = Sort[t[[k]], #1[[1]] < #2[[1]] &][[1]];
+   time[[k + 1]] = time[[k]] + t[[k, 1]];
+   );
+collision[k_, a_, b_] := (
+   pos[[k + 1]] = pos[[k]] + vel[[k]] t[[k, 1]];
+   vel[[k + 1]] = vel[[k]];
+   Which[b == 0
+    ,
+    If[pos[[k, a, 1]] < pos[[k, a, -1]], pos[[k + 1, a, 1]] = widht, 
+      pos[[k + 1, a, -1]] = widht]; 
+    ,
+    b == quantity + 1
+    ,
+    If[pos[[k, a, -1]] > pos[[k, a, 1]], pos[[k + 1, a, -1]] = 0, 
+      pos[[k + 1, a, 1]] = 0];
+    ,
+    1 <= b <= quantity
+    ,
+    vel[[k + 1, a]] =
+     (vel[[k, a]] (mass[[a]] - mass[[b]]) + 2 mass[[b]] vel[[k, b]])/(
+     mass[[a]] + mass[[b]]);
+    vel[[k + 1, b]] = (
+     vel[[k, b]] (mass[[b]] - mass[[a]]) + 2 mass[[a]] vel[[k, a]])/(
+     mass[[b]] + mass[[a]]);
+    ]
+   );
+
+order = {s, b};
+mass = order /. {s -> 1, b -> 1000};
+radius = order /. {s -> Pi/50, b -> Pi/20};
+pos = Table[
+   Table[{x1[i][j], x2[i][j]}, {i, 1, quantity}], {j, 1, col}];
+pos[[1]] = 
+  Table[{(widht n)/quantity - widht/(quantity 2) - radius[[n]], (
+     widht n)/quantity - widht/(quantity 2) + radius[[n]]}, {n, 1, 
+    quantity}];
+vel = Table[Table[v[i][j], {i, 1, quantity}], {j, 1, col}];
+vel[[1]] = 
+  Table[RandomInteger[{-5, 5}]/RandomInteger[{1, 10}], quantity];
+t = Table[{}, col - 1];
+time = Table[0, col];
+color = order /. {s -> Blue, b -> Red};
+n = 1; While[n < col,
+ collisionscan[n];
+ collision[n, t[[n, 2]], t[[n, 3]]];
+ (*Print[{n},{time[[n]]},t[[n]],pos[[n]],vel[[n]]];*)
+ n++
+ ];
+gv = Table[{x, 0}, {x, dt, time[[Length[time]]], dt}]; For[k = 1, 
+ k <= Length[gv], k++,
+ For[i = 1, gv[[k, 1]] >= time[[i]], i++,
+  For[j = Length[time], time[[j]] > gv[[k, 1]], j = j - 1,
+   gv[[k, 2]] = i
+   ];
+  If[i >= Length[time], Break[]];
+  ];
+ If[gv[[k, 2]] == 0, gv[[k, 2]] = Length[time]]
+ ]
+movievector = Table[0, Length[gv]];
+graphpos = Table[Table[0, quantity], Length[gv]];
+For[k = 1, k <= Length[gv], k++,
+ graphpos[[k]] = 
+  pos[[gv[[k, 2]]]] + 
+   vel[[gv[[k, 2]]]] (gv[[k, 1]] - 
+      time[[gv[[k, 2]]]])(*+Sign[vel[[gv[[k,2]]]]]radius*);
+ movievector[[k]] = Show[Graphics[{
+     {Black, Thickness[Tiny], Circle[{0, 0}, r]}
+     ,
+     Table[{color[[n]], 
+       Disk[{r Cos[graphpos[[k, n, 1]]/ r + radius[[n]]], 
+         r Sin[graphpos[[k, n, -1]]/ r - radius[[n]]]}, 
+        radius[[n]]]}, {n, 1, quantity}]},
+    PlotRange -> {{-r - 1, r + 1}, {-r - 1, r + 1}},
+    Axes -> False
+    ]];
+ ]
+ListAnimate[movievector, AnimationRate -> 60]
+
+
+Export["koraliki.avi", audio]
+
+"koraliki.avi"
+Export["audio.MP3", audio]
+"audio.MP3"
+{-1, 1}[[1]]
+-1
+a = Play[(t^2 - 0.2) Sin[2 Pi 50 t], {t, 0, dt}];
+c = Play[0, {t, 0, dt}];
+s = 0;
+audio = Sound[
+  Table[If[gv[[n, 2]] < gv[[n + 1, 2]], a, c], {n, 1, Length[gv] - 1}]]
+

@@ -1,0 +1,118 @@
+d = 4;(*Decimal precision*)
+x10 = 2;
+v10 = -1;
+r1 = 0.5;
+x20 = 1;
+v20 = 0;
+r2 = 0.25;
+tc = Table[{0, 0, 0, 0, 0}, 4*10^d];
+For[{x1 = x10, v1 = v10, m1 = 100^d, x2 = x20, v2 = v20, m2 = 1, 
+   t = 0, c = 0}(*Starting values*)
+  , True(*Termination conditions*)
+  ,
+  , {
+   (*Blocks collision*)
+   dt = (x1 - x2)/Abs[v1 - v2] // N;
+   t = t + dt;
+   x1 = x1 + v1*dt // N;
+   x2 = x2 + v2*dt // N;
+   c = c + 1;
+   nv1 = (v1 (m1 - m2) + 2 m2 v2)/(m1 + m2);
+   v2 = (v2 (m2 - m1) + 2 m1 v1)/(m1 + m2) // N;
+   v1 = nv1 // N;
+   tc[[c]] = {t, x1, v1, x2, v2};
+   If[Or[v1 < Abs[v2], v2 <= 0], Null, Break[]];
+   
+   (*collision with the wall*)
+   dt = (x2 - r2)/Abs[v2] // N;
+   t = t + dt;
+   x1 = x1 + v1*dt // N;
+   x2 = x2 + v2*dt // N;
+   c = c + 1;
+   v2 = v2*-1;
+   tc[[c]] = {t, x1, v1, x2, v2};
+   If[Or[v1 < Abs[v2], v2 <= 0], Null, Break[]];
+   
+   }];
+moc = Table[{0, 0, 0, 0, 0}, c + 1];
+moc[[1]] = {0, x10, v10, x20, v20};
+For[i = 1, i <= c, i++, moc[[i + 1]] = tc[[i]]];
+Print[{c, Length[moc]}];
+c == N[Pi*10^d, d]
+
+fps = 1/60;
+tRange = Range[0, Round[t] + 1, fps];
+gv = Table[{0, 0}, Length[tRange] + 1];
+movieVector = ConstantArray[0, Length[tRange]];
+For[{i = 1, t = 0, tk = fps, ic = 0}, i <= Length[tRange] + 1, i++,
+  time = Timing[
+     t = t + tk;
+     gv[[i, 1]] = t;
+     For[If[i == 1, j = 1, j = gv[[i - 1, 2]]], 
+      gv[[i, 1]] >= moc[[j, 1]], j++,
+      For[k = j + 1, 
+       moc[[If[k >= Length[moc], Length[moc], k], 1]] > gv[[i, 1]], 
+       k = k - 1,
+       gv[[i, 2]] = j
+       ];
+      If[j >= Length[moc], Break[]];
+      ];
+     If[gv[[i, 2]] == 0, gv[[i, 2]] = Length[moc]];
+     
+     ];
+For[{k = 1, x1 = x10, x2 = x20}
+ ,
+ k <= Length[tRange]
+ ,
+ k++
+ ,
+ x1 = moc[[gv[[k, 2]], 2]] + 
+   moc[[gv[[k, 2]], 3]]*(gv[[k, 1]] - moc[[gv[[k, 2]], 1]]);
+ x2 = moc[[gv[[k, 2]], 4]] + 
+   moc[[gv[[k, 2]], 5]]*(gv[[k, 1]] - moc[[gv[[k, 2]], 1]]);
+ movieVector[[k]] = Show[
+   Graphics[{
+     Blue, Rectangle[{x1, 0}, {x1 + r1, r1}]
+     ,
+     Red, Rectangle[{x2 - r2, 0}, {x2, r2}]
+     ,
+     Black, Text[N[gv[[k, 1]], 2], {0.9, 1}], Text["czas", {0.3, 1}]
+     ,
+     Text[gv[[k, 2]] - 1, {2.3, 1}], Text["Zderzenia", {1.7, 1}]
+     }]
+   ,
+   PlotRange -> {{0, 3}, {-1, 1}},
+   Axes -> True
+   ]
+ ]
+filleName = "hmcMathematica.avi";
+audioName = "hmcAudio.avi";
+outputName = "output.avi";
+dir = Directory[];
+ffmpegPath = 
+  "/opt/local/bin/ffmpeg"; (*You need to have FFMPEG installed and \
+here you should paste the FFMPEG path. Linux and Mac workd OOTB \
+and i don't about Windows.*)
+
+Export[filleName, movieVector, FrameRate -> 55];
+hit[n_] := 
+  Play[Evaluate[
+    If[n != 0, Table[Sin[2 Pi 100 a + b], {b, 1, n}], 0]], {a, 0, 
+    fps}];
+audio = Sound[
+   Table[If[n == 1, hit[0], 
+     hit[If[gv[[n, 2]] - gv[[n - 1, 2]] < 100, 
+       gv[[n, 2]] - gv[[n - 1, 2]], 100]]], {n, 1, Length[gv]}]];
+Export[audioName, audio];
+
+
+If[FileExistsQ[dir <> "/" <> outputName],
+  DeleteFile[dir <> "/" <> outputName]
+  ];
+(*Concat paths*)
+Run[ffmpegPath <> " -i " <> dir <> "/" <> filleName <> " -i " <> dir <>
+    "/" <> audioName <> " -c:v copy -c:a aac " <> dir <> "/" <> 
+   outputName];
+(*Cleanup*)
+DeleteFile[dir <> "/" <> filleName]
+DeleteFile[dir <> "/" <> audioName]
